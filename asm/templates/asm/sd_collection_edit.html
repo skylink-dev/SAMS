@@ -1,0 +1,91 @@
+{% extends "dashboards/base_zm.html" %}
+{% load static %}
+
+{% block content %}
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-red-50 to-red-100 py-6 px-4">
+  <div class="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-md border-t-4 border-blue-500 animate__animated animate__fadeInUp">
+    <h2 class="text-2xl font-bold text-blue-600 flex items-center gap-2 mb-6">
+      <i data-lucide="edit-3" class="w-6 h-6"></i>
+      Edit SD Collection
+    </h2>
+
+    <form method="post" id="editForm">
+      {% csrf_token %}
+
+      <!-- Partner -->
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Partner</label>
+      <input type="text" value="{{ collection.partner.full_name }}" readonly
+        class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 mb-4 text-gray-600 cursor-not-allowed">
+
+      <!-- ASM -->
+      <label class="block text-sm font-semibold mb-1 text-gray-700">ASM</label>
+      <input type="text" value="{{ collection.asm.full_name }}" readonly
+        class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 mb-4 text-gray-600 cursor-not-allowed">
+
+      <!-- ZM -->
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Zone Manager</label>
+      <input type="text" value="{{ collection.zone_manager.user.full_name }}" readonly
+        class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 mb-4 text-gray-600 cursor-not-allowed">
+
+      <!-- Amount -->
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Amount (₹)</label>
+      <input type="number" name="amount" value="{{ collection.amount }}" step="0.01"
+        class="w-full border-gray-300 rounded-lg p-2 mb-4 focus:ring-2 focus:ring-blue-400" required>
+
+      <!-- Note -->
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Note</label>
+      <textarea name="note" rows="3" placeholder="Add a note or remark..."
+        class="w-full border-gray-300 rounded-lg p-2 mb-5 focus:ring-2 focus:ring-blue-400">{{ collection.note }}</textarea>
+
+      <!-- Status -->
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Status</label>
+      <select name="status"
+        class="w-full border-gray-300 rounded-lg p-2 mb-5 focus:ring-2 focus:ring-blue-400">
+        <option value="pending" {% if collection.status == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="completed" {% if collection.status == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if collection.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+
+      <!-- Buttons -->
+      <div class="flex justify-between items-center">
+        <a href="{% url 'asm_sd_list' %}" class="text-gray-500 hover:text-blue-600 flex items-center gap-1">
+          <i data-lucide="arrow-left"></i> Cancel
+        </a>
+        <button type="submit"
+          class="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition">
+          <i data-lucide="save"></i> Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center">
+  <div class="bg-white p-6 rounded-xl shadow-xl w-80 text-center">
+    <i data-lucide="check-circle" class="text-green-500 w-10 h-10 mx-auto mb-3"></i>
+    <p class="text-gray-700 font-medium mb-4">SD Collection updated successfully!</p>
+    <a href="{% url 'sd_collection_list_zm' %}" 
+       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">OK</a>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  // Optional: Simulate success message (if using AJAX in future)
+  const form = document.getElementById("editForm");
+  const modal = document.getElementById("confirmModal");
+
+  form.addEventListener("submit", (e) => {
+    const amount = document.querySelector("input[name='amount']").value.trim();
+    if (!amount || amount <= 0) {
+      e.preventDefault();
+      alert("Please enter a valid amount");
+      return false;
+    }
+  });
+</script>
+{% endblock %}

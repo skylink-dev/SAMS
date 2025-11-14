@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ASM Dashboard{% endblock %}</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    @keyframes slideInLeft {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .slide-in-left {
+      animation: slideInLeft 0.3s ease-out;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- HEADER -->
+  <header class="fixed top-0 w-full bg-white shadow-sm border-b border-gray-200 z-50">
+    <div class="flex justify-between items-center px-4 py-3">
+      
+      <!-- Logo -->
+      <div class="text-lg font-bold bg-gradient-to-r from-red-500 to-rose-600 text-white px-3 py-1 rounded-md shadow">
+        SKYPLAY
+      </div>
+
+      <!-- Navigation -->
+      <nav class="hidden lg:flex items-center space-x-2 bg-gray-50 rounded-md px-2 py-1 border border-gray-200">
+        <a href="{% url 'area_sales_dashboard' %}" class="px-3 py-2 rounded text-sm font-medium flex items-center space-x-2 text-gray-800 hover:bg-white border border-gray-200 shadow-sm">
+          <i class="fas fa-chart-line text-red-600"></i><span>Dashboard</span>
+        </a>
+        <a href="{% url 'asm_daily_target' %}" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-white rounded">DSR</a>
+        <a href="{% url 'asm_sd_list' %}" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-white rounded">Partner</a>
+        <a href="{% url 'asm_task_list' %}" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-white rounded">Activity</a>
+      </nav>
+
+      <!-- User Info -->
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center font-bold">
+          {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <p class="text-gray-700">{{ request.user.username }}</p>
+        <a href="{% url 'logout' %}" class="text-red-600 ml-3 flex items-center space-x-1">
+          <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="mt-16 p-4 md:p-6 lg:p-8">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-4 mb-3 rounded bg-blue-100 text-blue-800 border border-blue-300">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="text-center text-gray-500 text-xs py-4 mt-8">
+    © 2025 Skyplay — Empowering ASM Growth 🚀
+  </footer>
+
+</body>
+</html>

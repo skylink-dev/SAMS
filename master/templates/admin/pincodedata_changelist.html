@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block object-tools %}
+<div style="display: flex; gap: 10px; align-items: center;">
+  <a href="{% url 'admin:map_to_master' %}" 
+     class="button" 
+     style="background:#007bff;color:white;">🗺️ Map to Master</a>
+</div>
+{{ block.super }}
+{% endblock %}

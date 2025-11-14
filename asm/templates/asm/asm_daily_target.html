@@ -1,0 +1,221 @@
+{% extends "dashboards/base_asm.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Corporate Blue Theme ASM Targets (Responsive) -->
+<div class="bg-slate-50 min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-semibold text-slate-800 flex items-center gap-3">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-sky-500 text-white shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18"/>
+            </svg>
+          </span>
+          Daily Target Dashboard
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+          Zonal Manager: <span class="font-medium text-slate-700">{{ zm.user.get_full_name }}</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="{% url 'daily_target' %}" class="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md">
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12h3m0 0v3m0-3V9m0 3h3"/></svg>
+          Refresh
+        </a>
+        <a href="{% url 'daily_target_add' %}" class="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-sky-500 text-white rounded-lg shadow hover:scale-[1.01] transform transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16M4 12h16"/></svg>
+          Add Target
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters & Controls -->
+    <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+      <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search ASM name or date..." class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none" />
+      <input type="date" name="from_date" value="{{ request.GET.from_date }}" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none" />
+      <input type="date" name="to_date" value="{{ request.GET.to_date }}" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none" />
+      <select name="asm" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-sky-400 focus:outline-none">
+        <option value="">All ASMs</option>
+        {% for asm in all_asms %}
+          <option value="{{ asm.id }}" {% if request.GET.asm == asm.id|stringformat:"s" %}selected{% endif %}>{{ asm.get_full_name }}</option>
+        {% endfor %}
+      </select>
+
+      <div class="sm:col-span-2 lg:col-span-4 flex justify-end gap-2 mt-1">
+        <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-md shadow hover:bg-sky-700">Apply</button>
+        <a href="{% url 'daily_target' %}" class="px-4 py-2 bg-white border border-slate-200 rounded-md hover:shadow-sm">Clear</a>
+      </div>
+    </form>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {% for card in cards %}
+        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 {% if card.border %}{{ card.border }}{% else %}border-sky-500{% endif %}">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs text-slate-500 uppercase tracking-wide">{{ card.title }}</p>
+              <p class="mt-1 text-2xl font-semibold text-slate-800">{{ card.value }}</p>
+            </div>
+            <div class="text-2xl text-sky-500">
+              <!-- small icon -->
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18"/></svg>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Responsive Table -->
+    <div class="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden">
+      <div class="px-4 py-3 sm:px-6 flex items-center justify-between">
+        <h3 class="text-lg font-medium text-slate-800">Daily Targets</h3>
+        <p class="text-sm text-slate-500">Records: <span class="font-semibold text-slate-700">{{ targets|length }}</span></p>
+      </div>
+
+      <!-- Table (desktop) -->
+      <div class="hidden md:block">
+        <table class="min-w-full divide-y divide-slate-100">
+          <thead class="bg-sky-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">Date</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">ASM</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600">ZM Target</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600">ASM Achieve</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600">ZM Target vs Achieved (%)</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600">ASM Target vs Achieved (%)</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600">Action</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-slate-100">
+            {% for t in targets %}
+              <tr class="hover:bg-slate-50 transition">
+                <td class="px-4 py-3 text-sm text-slate-700">{{ t.date|date:"d M Y" }}</td>
+                <td class="px-4 py-3 text-sm text-slate-700">{{ t.asm.get_full_name|default:"-" }}</td>
+
+                <!-- ZM total target -->
+                <td class="px-4 py-3 text-sm text-right text-slate-800 font-semibold">{{ t.zm_total_target|floatformat:0 }}</td>
+
+                <!-- ASM total achieve -->
+                <td class="px-4 py-3 text-sm text-right text-slate-700">{{ t.asm_total_achieve|floatformat:0 }}</td>
+
+                <!-- ZM vs Achieve -->
+                <td class="px-4 py-3 text-sm text-center">
+                  <div class="flex flex-col items-center">
+                    <span class="text-sm font-medium {% if t.zm_vs_achieve_percent >= 100 %}text-emerald-600{% elif t.zm_vs_achieve_percent >= 50 %}text-amber-500{% else %}text-rose-600{% endif %}">
+                      {{ t.zm_vs_achieve_percent|floatformat:1 }}%
+                    </span>
+                    <div class="w-36 h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                      <div class="h-2 rounded-full transition-all" style="width: {{ t.zm_vs_achieve_percent }}%; background: linear-gradient(90deg,#60a5fa,#0ea5e9)"></div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- ASM vs Achieve -->
+                <td class="px-4 py-3 text-sm text-center">
+                  <div class="flex flex-col items-center">
+                    <span class="text-sm font-medium {% if t.asm_vs_achieve_percent >= 100 %}text-emerald-600{% elif t.asm_vs_achieve_percent >= 50 %}text-amber-500{% else %}text-rose-600{% endif %}">
+                      {{ t.asm_vs_achieve_percent|floatformat:1 }}%
+                    </span>
+                    <div class="w-36 h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                      <div class="h-2 rounded-full transition-all" style="width: {{ t.asm_vs_achieve_percent }}%; background: linear-gradient(90deg,#34d399,#10b981)"></div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-4 py-3 text-sm text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <a href="{% url 'asm_daily_target_detail' t.id %}" class="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-md text-sky-600 hover:shadow-sm">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      View
+                    </a>
+                    <a href="{% url 'daily_target_edit' t.id %}" class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-md text-amber-700 hover:shadow-sm">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M15.232 5.232l3.536 3.536M9 11l6 6L7 21l-4-8 6-2z"/></svg>
+                      Edit
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-slate-500">No daily targets found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile list (cards) -->
+      <div class="md:hidden px-4 pb-4 space-y-3">
+        {% for t in targets %}
+          <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm text-slate-500">Date</p>
+                    <p class="text-sm font-medium text-slate-800">{{ t.date|date:"d M Y" }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm text-slate-500">ASM</p>
+                    <p class="text-sm font-medium text-slate-800">{{ t.asm.get_full_name|default:"-" }}</p>
+                  </div>
+                </div>
+
+                <div class="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <p class="text-xs text-slate-500">ZM Target</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ t.zm_total_target|floatformat:0 }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-500">ASM Achieve</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ t.asm_total_achieve|floatformat:0 }}</p>
+                  </div>
+                </div>
+
+                <div class="mt-3 space-y-2">
+                  <div>
+                    <p class="text-xs text-slate-500">ZM Target vs Achieved</p>
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-medium {% if t.zm_vs_achieve_percent >= 100 %}text-emerald-600{% elif t.zm_vs_achieve_percent >= 50 %}text-amber-500{% else %}text-rose-600{% endif %}">
+                        {{ t.zm_vs_achieve_percent|floatformat:1 }}%
+                      </div>
+                      <div class="w-2/3 h-2 bg-slate-200 rounded-full">
+                        <div class="h-2 rounded-full" style="width: {{ t.zm_vs_achieve_percent }}%; background: linear-gradient(90deg,#60a5fa,#0ea5e9)"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p class="text-xs text-slate-500">ASM Target vs Achieved</p>
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-medium {% if t.asm_vs_achieve_percent >= 100 %}text-emerald-600{% elif t.asm_vs_achieve_percent >= 50 %}text-amber-500{% else %}text-rose-600{% endif %}">
+                        {{ t.asm_vs_achieve_percent|floatformat:1 }}%
+                      </div>
+                      <div class="w-2/3 h-2 bg-slate-200 rounded-full">
+                        <div class="h-2 rounded-full" style="width: {{ t.asm_vs_achieve_percent }}%; background: linear-gradient(90deg,#34d399,#10b981)"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="mt-3 flex items-center gap-2">
+              <a href="{% url 'asm_daily_target_detail' t.id %}" class="flex-1 text-center px-3 py-2 bg-white border border-slate-200 rounded-md text-sky-600">View</a>
+             
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

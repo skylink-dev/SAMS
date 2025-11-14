@@ -1,0 +1,109 @@
+{% extends 'dashboards/base_zm.html' %}
+{% block title %}Zonal Manager Dashboard | Skyplay{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- HEADER -->
+<div class="text-center mb-8">
+  <h1 class="text-3xl font-bold text-gray-800">
+    <i class="fas fa-chart-line text-red-500 mr-2"></i> Zonal Manager Dashboard
+  </h1>
+  <p class="text-gray-600 text-sm mt-1">Track zone performance and revenue in real time</p>
+</div>
+
+<!-- KPI CARDS -->
+<div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl p-4 shadow-md">
+    <div class="flex items-center justify-between">
+      <i class="fas fa-chart-pie text-2xl opacity-80"></i>
+      <span class="text-xs bg-white/30 px-2 py-1 rounded-lg">+5%</span>
+    </div>
+    <p class="text-sm mt-2 opacity-90">Zone Performance</p>
+    <h2 class="text-2xl font-bold">82%</h2>
+  </div>
+
+  <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-4 shadow-md">
+    <div class="flex items-center justify-between">
+      <i class="fas fa-users text-2xl opacity-80"></i>
+      <span class="text-xs bg-white/30 px-2 py-1 rounded-lg">4 Active</span>
+    </div>
+    <p class="text-sm mt-2 opacity-90">ASM Team</p>
+    <h2 class="text-2xl font-bold">4</h2>
+  </div>
+
+  <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-4 shadow-md">
+    <div class="flex items-center justify-between">
+      <i class="fas fa-indian-rupee-sign text-2xl opacity-80"></i>
+      <span class="text-xs bg-white/30 px-2 py-1 rounded-lg">+12%</span>
+    </div>
+    <p class="text-sm mt-2 opacity-90">Revenue</p>
+    <h2 class="text-2xl font-bold">₹64.2L</h2>
+  </div>
+
+  <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-4 shadow-md">
+    <div class="flex items-center justify-between">
+      <i class="fas fa-map-marker-alt text-2xl opacity-80"></i>
+      <span class="text-xs bg-white/30 px-2 py-1 rounded-lg">7/8</span>
+    </div>
+    <p class="text-sm mt-2 opacity-90">District Coverage</p>
+    <h2 class="text-2xl font-bold">88%</h2>
+  </div>
+</div>
+
+<!-- CHARTS -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+    <h3 class="text-gray-800 font-semibold mb-3 flex items-center">
+      <i class="fas fa-chart-bar text-red-500 mr-2"></i> Performance Overview
+    </h3>
+    <canvas id="performanceChart"></canvas>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+    <h3 class="text-gray-800 font-semibold mb-3 flex items-center">
+      <i class="fas fa-coins text-green-500 mr-2"></i> Revenue Trend
+    </h3>
+    <canvas id="revenueChart"></canvas>
+  </div>
+</div>
+
+<script>
+  // Performance chart
+  new Chart(document.getElementById("performanceChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      datasets: [{
+        label: "Performance %",
+        data: [70, 75, 78, 82, 80, 86],
+        borderColor: "#ef4444",
+        backgroundColor: "rgba(239, 68, 68, 0.2)",
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
+  });
+
+  // Revenue chart
+  new Chart(document.getElementById("revenueChart"), {
+    type: "bar",
+    data: {
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      datasets: [{
+        label: "Revenue (L)",
+        data: [42, 48, 51, 59, 63, 64],
+        backgroundColor: "#22c55e",
+        borderRadius: 8
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+  });
+</script>
+
+<div class="text-center text-gray-500 text-xs mt-8 mb-4">
+  © 2025 Skyplay — Empowering Zonal Growth 🚀
+</div>
+{% endblock %}

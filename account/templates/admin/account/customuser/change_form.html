@@ -1,0 +1,41 @@
+{% extends "admin/change_form.html" %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+
+    <div style="margin-top:10px; display:flex; gap:8px;">
+        {% if change_password_url %}
+            <a href="{{ change_password_url }}"
+               class="button default"
+               style="
+                    background-color:#1976D2;
+                    color:white;
+                    padding:6px 12px;
+                    border-radius:6px;
+                    text-decoration:none;
+                    font-weight:600;
+                    display:inline-flex;
+                    align-items:center;
+               ">
+                🔒&nbsp;Change Password
+            </a>
+        {% endif %}
+
+        {% if reset_password_url %}
+            <a href="{{ reset_password_url }}"
+               class="button"
+               style="
+                    background-color:#2E7D32;
+                    color:white;
+                    padding:6px 12px;
+                    border-radius:6px;
+                    text-decoration:none;
+                    font-weight:600;
+                    display:inline-flex;
+                    align-items:center;
+               ">
+                ✉️&nbsp;Send Reset Link
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}

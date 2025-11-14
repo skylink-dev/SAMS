@@ -1,0 +1,32 @@
+fieldset {
+    border: none;
+    padding: 0;
+}
+
+.tab-container {
+    display: flex;
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.tab {
+    padding: 8px 15px;
+    cursor: pointer;
+    background: #f1f1f1;
+    margin-right: 4px;
+    border-radius: 6px 6px 0 0;
+}
+
+.tab.active {
+    background: white;
+    border-bottom: 2px solid white;
+    font-weight: 600;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}

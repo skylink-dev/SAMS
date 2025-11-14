@@ -1,0 +1,187 @@
+{% extends "dashboards/base_zm.html" %}
+{% load static %}
+{% block content %}
+
+<div class="bg-gray-100 min-h-screen p-4 sm:p-6">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2 animate-fade-in">
+          🎯 Daily Target Dashboard
+        </h1>
+        <p class="text-gray-500">
+          Zonal Manager:
+          <span class="font-medium text-gray-700">{{ zm.user.get_full_name }}</span>
+        </p>
+      </div>
+      <a href="{% url 'daily_target' %}"
+         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow">
+        🔄 Refresh
+      </a>
+      
+    </div>
+
+    
+
+    <!-- Filters -->
+    <form method="get"
+      class="bg-white shadow-lg rounded-xl p-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end transform transition duration-500 hover:shadow-xl">
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Search</label>
+        <input type="text" name="search" value="{{ request.GET.search }}"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+               placeholder="ASM Name or Date...">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">From Date</label>
+        <input type="date" name="from_date" value="{{ request.GET.from_date }}"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">To Date</label>
+        <input type="date" name="to_date" value="{{ request.GET.to_date }}"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Filter by ASM</label>
+        <select name="asm" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+          <option value="">All ASMs</option>
+          {% for asm in all_asms %}
+            <option value="{{ asm.id }}" {% if request.GET.asm == asm.id|stringformat:"s" %}selected{% endif %}>
+              {{ asm.get_full_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="sm:col-span-2 lg:col-span-4 flex justify-end gap-2 mt-2">
+        <button type="submit"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow transition-all duration-200">
+          🔍 Apply Filters
+        </button>
+        <a href="{% url 'daily_target' %}"
+           class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-all duration-200">
+          ❌ Clear
+        </a>
+      </div>
+    </form>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {% for card in cards %}
+        <div class="bg-white rounded-xl shadow-lg p-5 border-t-4 {{ card.border }} animate-slide-up">
+          <h2 class="text-gray-500 text-sm uppercase mb-1">{{ card.title }}</h2>
+          <p class="text-2xl font-semibold text-gray-800">{{ card.value }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+     
+
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-3">
+  <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+    📅 Daily Targets
+  </h2>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <a href="{% url 'daily_target_add' %}"
+       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl
+              hover:from-green-600 hover:to-emerald-700 transition-all duration-300 ease-in-out shadow-lg
+              hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 text-sm font-semibold">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+           stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2 animate-bounce-slow">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Target
+    </a>
+
+    <span class="text-sm text-gray-500 mt-1 sm:mt-0">
+      Records: {{ targets|length }}
+    </span>
+  </div>
+</div>
+
+<style>
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2s infinite;
+}
+</style>
+
+
+
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full border border-gray-200 rounded-lg text-sm">
+          <thead class="bg-blue-50">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">Date</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700">ASM</th>
+              <th class="px-4 py-3 text-right font-semibold text-gray-700">Target</th>
+              <th class="px-4 py-3 text-right font-semibold text-gray-700">Achieved</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-700">%</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-700">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for t in targets %}
+              <tr class="border-b hover:bg-gray-50 transition duration-200">
+                <td class="px-4 py-3">{{ t.date|date:"d M Y" }}</td>
+                <td class="px-4 py-3">{{ t.asm.get_full_name|default:"-" }}</td>
+                <td class="px-4 py-3 text-right">{{ t.total_target|floatformat:0 }}</td>
+                <td class="px-4 py-3 text-right">{{ t.total_achieve|floatformat:0 }}</td>
+                <td class="px-4 py-3 text-center font-semibold
+                  {% if t.percent >= 100 %}text-green-600
+                  {% elif t.percent >= 50 %}text-yellow-500
+                  {% else %}text-red-600{% endif %}">
+                  {{ t.percent|floatformat:1 }}%
+                  <div class="w-full bg-gray-200 h-2 mt-1 rounded-full overflow-hidden">
+                    <div class="h-2 rounded-full transition-all duration-700
+                      {% if t.percent >= 100 %}bg-green-500
+                      {% elif t.percent >= 50 %}bg-yellow-400
+                      {% else %}bg-red-500{% endif %}"
+                      style="width: {{ t.percent }}%;"></div>
+                  </div>
+                </td>
+               <td class="px-4 py-3 text-center">
+  <div class="flex justify-center space-x-2">
+    <a href="{% url 'daily_target_detail' t.id %}"
+       class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg 
+              hover:bg-blue-200 transition-all duration-200 text-sm font-semibold shadow-sm">
+      👁️ View
+    </a>
+    <a href="{% url 'daily_target_edit' t.id %}"
+       class="inline-flex items-center px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg 
+              hover:bg-yellow-200 transition-all duration-200 text-sm font-semibold shadow-sm">
+      ✏️ Edit
+    </a>
+  </div>
+</td>
+
+                
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="px-4 py-6 text-center text-gray-500">No daily targets found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

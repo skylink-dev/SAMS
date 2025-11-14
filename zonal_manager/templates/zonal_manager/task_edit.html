@@ -1,0 +1,141 @@
+{% extends "dashboards/base_zm.html" %}
+{% load static %}
+{% block content %}
+
+<div class="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-100 p-4 md:p-8">
+  <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl p-6 md:p-10 transition-all duration-300 hover:shadow-red-200">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl md:text-3xl font-bold text-red-600 flex items-center gap-2">
+        <i data-lucide="edit-3" class="w-7 h-7"></i>
+        Edit Task
+      </h1>
+      <a href="{% url 'zm_task_list' %}"
+         class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-200 transition">
+        <i data-lucide="list" class="w-5 h-5"></i>
+        View All
+      </a>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Task Title -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Task Title</label>
+        <div class="flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+          <span class="px-3 bg-red-50 text-red-600">
+            <i data-lucide="type" class="w-5 h-5"></i>
+          </span>
+          <input type="text" name="title" value="{{ task.title }}" required
+                 class="w-full p-2.5 focus:outline-none" placeholder="Enter task title">
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Task Details</label>
+        <div class="flex items-start border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+          <span class="px-3 pt-2 bg-red-50 text-red-600">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </span>
+          <textarea name="details" rows="3"
+                    class="w-full p-2.5 focus:outline-none"
+                    placeholder="Describe the task...">{{ task.details }}</textarea>
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Category</label>
+        <div class="flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+          <span class="px-3 bg-red-50 text-red-600">
+            <i data-lucide="folder" class="w-5 h-5"></i>
+          </span>
+          <select name="category" class="w-full p-2.5 focus:outline-none">
+            <option value="">-- Select Category --</option>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if task.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Assign To -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Assign To (ASM)</label>
+        <div class="flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+          <span class="px-3 bg-red-50 text-red-600">
+            <i data-lucide="user" class="w-5 h-5"></i>
+          </span>
+          <select name="assigned_to" required class="w-full p-2.5 focus:outline-none">
+            <option value="">-- Select ASM --</option>
+            {% for asm in asms %}
+              <option value="{{ asm.id }}" {% if task.assigned_to.id == asm.id %}selected{% endif %}>{{ asm.full_name }} ({{ asm.username }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-700 font-semibold mb-2">Start Date</label>
+          <div class="flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+            <span class="px-3 bg-red-50 text-red-600">
+              <i data-lucide="calendar" class="w-5 h-5"></i>
+            </span>
+            <input type="date" name="start_date" value="{{ task.start_date|date:'Y-m-d' }}" class="w-full p-2.5 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-semibold mb-2">End Date</label>
+          <div class="flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+            <span class="px-3 bg-red-50 text-red-600">
+              <i data-lucide="calendar-days" class="w-5 h-5"></i>
+            </span>
+            <input type="date" name="end_date" value="{{ task.end_date|date:'Y-m-d' }}" class="w-full p-2.5 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">Task Status</label>
+        <div class="flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-red-400 overflow-hidden">
+          <span class="px-3 bg-red-50 text-red-600">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+          </span>
+          <select name="status" class="w-full p-2.5 focus:outline-none">
+            {% for code, name in task.STATUS_CHOICES %}
+              <option value="{{ code }}" {% if task.status == code %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-4 mt-6">
+        <a href="{% url 'zm_task_list' %}"
+           class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i> Cancel
+        </a>
+        <button type="submit"
+                class="bg-red-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-red-700 transition-all">
+          <i data-lucide="save" class="w-5 h-5"></i>
+          Update Task
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+
+{% endblock %}

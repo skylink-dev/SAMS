@@ -1,0 +1,182 @@
+{% extends "dashboards/base_zm.html" %}
+{% load static %}
+
+{% block content %}
+<script src="https://unpkg.com/lucide@latest"></script>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+/>
+
+<style>
+  /* Animated gradient background */
+  body {
+    background: linear-gradient(-45deg, #ffdee9, #b5fffc, #ffe6e6, #f9f0ff);
+    background-size: 400% 400%;
+    animation: gradientMove 10s ease infinite;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Card shadow & transition */
+  .form-card {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Button animation */
+  .btn-hover {
+    transition: all 0.3s ease;
+  }
+  .btn-hover:hover {
+    transform: translateY(-2px);
+  }
+</style>
+
+<div class="min-h-screen flex items-center justify-center py-6 px-4">
+  <div class="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-md border-t-4 border-red-500 form-card animate__animated animate__fadeInUp">
+    <h2 class="text-2xl font-bold text-red-600 flex items-center gap-2 mb-6">
+      <i data-lucide="wallet" class="w-6 h-6"></i>
+      Add SD Collection
+    </h2>
+
+    <!-- Form -->
+    <form method="post" id="sdForm" class="space-y-4">
+      {% csrf_token %}
+
+      <!-- Partner -->
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-gray-700">Partner</label>
+        <select name="partner" id="partner" class="w-full border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-red-400">
+          <option value="">-- Select Partner --</option>
+          {% for p in partners %}
+          <option value="{{ p.id }}">{{ p.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- ASM -->
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-gray-700">ASM</label>
+        <input type="text" id="asmField" value="N/A" readonly
+          class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 text-gray-600 cursor-not-allowed">
+        <input type="hidden" name="asm" id="asmId">
+      </div>
+
+      <!-- ZM -->
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-gray-700">Zone Manager</label>
+        <input type="text" id="zmField" value="N/A" readonly
+          class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 text-gray-600 cursor-not-allowed">
+        <input type="hidden" name="zone_manager" id="zmId">
+      </div>
+
+      <!-- Amount -->
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-gray-700">Amount (₹)</label>
+        <input type="number" name="amount" id="amount" step="0.01" placeholder="Enter amount"
+          class="w-full border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-red-400">
+      </div>
+
+      <!-- Note -->
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-gray-700">Note</label>
+        <textarea name="note" rows="3" placeholder="Optional note"
+          class="w-full border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-red-400"></textarea>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-gray-700">Status</label>
+        <select name="status" id="status" class="w-full border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-red-400">
+          <option value="pending" selected>Pending</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-between items-center pt-2">
+        <a href="{% url 'sd_collection_list_zm' %}" class="text-gray-500 hover:text-red-600 flex items-center gap-1 btn-hover">
+          <i data-lucide="arrow-left"></i> Cancel
+        </a>
+        <button type="submit"
+          class="bg-red-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 transition btn-hover">
+          <i data-lucide="check-circle"></i> Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="errorModal" class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center">
+  <div class="bg-white p-6 rounded-xl shadow-xl w-80 text-center animate__animated animate__fadeInUp">
+    <i data-lucide="alert-triangle" class="text-red-500 w-10 h-10 mx-auto mb-3"></i>
+    <p id="errorText" class="text-gray-700 font-medium mb-4"></p>
+    <button onclick="closeModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 btn-hover">OK</button>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  function showModal(message) {
+    document.getElementById("errorText").innerText = message;
+    document.getElementById("errorModal").classList.remove("hidden");
+  }
+
+  function closeModal() {
+    document.getElementById("errorModal").classList.add("hidden");
+  }
+
+  document.getElementById("sdForm").addEventListener("submit", function (e) {
+    const partner = document.getElementById("partner").value.trim();
+    const amount = document.getElementById("amount").value.trim();
+
+    if (!partner) {
+      e.preventDefault();
+      showModal("⚠️ Please select a Partner.");
+      return false;
+    }
+    if (!amount || amount <= 0) {
+      e.preventDefault();
+      showModal("⚠️ Please enter a valid amount.");
+      return false;
+    }
+  });
+
+  document.getElementById("partner").addEventListener("change", function () {
+    const partnerId = this.value;
+    if (!partnerId) {
+      document.getElementById("asmField").value = "N/A";
+      document.getElementById("zmField").value = "N/A";
+      document.getElementById("asmId").value = "";
+      document.getElementById("zmId").value = "";
+      return;
+    }
+
+    fetch(`/zm/get-partner-details/${partnerId}/`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("asmField").value = data.asm || "N/A";
+        document.getElementById("zmField").value = data.zm || "N/A";
+        document.getElementById("asmId").value = data.asm_id || "";
+        document.getElementById("zmId").value = data.zm_id || "";
+      })
+      .catch(() => {
+        document.getElementById("asmField").value = "N/A";
+        document.getElementById("zmField").value = "N/A";
+        document.getElementById("asmId").value = "";
+        document.getElementById("zmId").value = "";
+      });
+  });
+</script>
+{% endblock %}

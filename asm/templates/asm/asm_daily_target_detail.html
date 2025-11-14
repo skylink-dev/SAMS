@@ -1,0 +1,168 @@
+{% extends "dashboards/base_zm.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="bg-gray-100 min-h-screen p-4 md:p-6">
+  <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-2xl p-6 md:p-10 transition-all duration-500 hover:shadow-blue-300">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
+      <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
+        <i data-lucide="calendar-days" class="w-6 h-6 text-blue-600"></i>
+        Daily Target — {{ target.date|date:"d M Y" }}
+      </h1>
+      <div class="flex gap-3">
+        <a href="{% url 'daily_target' %}"
+           class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold transition">
+          <i data-lucide="arrow-left"></i> Back
+        </a>
+      </div>
+    </div>
+
+    <!-- ZM + ASM Info -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div class="bg-blue-50 p-4 rounded-xl shadow-sm">
+        <h2 class="text-gray-600 text-sm uppercase">Zonal Manager</h2>
+        <p class="text-lg font-semibold text-gray-800">{{ target.zonal_manager.user.get_full_name }}</p>
+      </div>
+      <div class="bg-green-50 p-4 rounded-xl shadow-sm">
+        <h2 class="text-gray-600 text-sm uppercase">ASM</h2>
+        <p class="text-lg font-semibold text-gray-800">{{ asm.get_full_name|default:"-" }}</p>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-xl shadow-sm">
+        <h2 class="text-gray-600 text-sm uppercase">ASM Email</h2>
+        <p class="text-gray-700">{{ asm.email|default:"-" }}</p>
+      </div>
+      <div class="bg-pink-50 p-4 rounded-xl shadow-sm">
+        <h2 class="text-gray-600 text-sm uppercase">ASM Phone</h2>
+        <p class="text-gray-700">{{ asm.phone|default:"-" }}</p>
+      </div>
+    </div>
+
+    <!-- ASM Coverage -->
+    <div class="mb-12">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i data-lucide="map-pin" class="w-5 h-5 text-red-500"></i> ASM Coverage
+      </h2>
+      <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div class="bg-blue-50 rounded-xl p-4 hover:scale-105 transition">
+          <h3 class="font-semibold text-gray-700 mb-1 flex items-center gap-1">
+            <i data-lucide="globe-2" class="w-4 h-4 text-blue-600"></i> States
+          </h3>
+          {% if asm_states %}
+            <ul class="list-disc ml-5 text-gray-700">
+              {% for s in asm_states %}<li>{{ s.name }}</li>{% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-gray-500">No states assigned</p>
+          {% endif %}
+        </div>
+        <div class="bg-green-50 rounded-xl p-4 hover:scale-105 transition">
+          <h3 class="font-semibold text-gray-700 mb-1 flex items-center gap-1">
+            <i data-lucide="map" class="w-4 h-4 text-green-600"></i> Districts
+          </h3>
+          {% if asm_districts %}
+            <ul class="list-disc ml-5 text-gray-700">
+              {% for d in asm_districts %}<li>{{ d.name }} ({{ d.state.name }})</li>{% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-gray-500">No districts assigned</p>
+          {% endif %}
+        </div>
+        <div class="bg-yellow-50 rounded-xl p-4 hover:scale-105 transition">
+          <h3 class="font-semibold text-gray-700 mb-1 flex items-center gap-1">
+            <i data-lucide="building-2" class="w-4 h-4 text-yellow-600"></i> Offices
+          </h3>
+          {% if asm_offices %}
+            <ul class="list-disc ml-5 text-gray-700">
+              {% for o in asm_offices %}<li>{{ o.name }} — {{ o.pincode }}</li>{% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-gray-500">No offices assigned</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- 🎯 Editable Target Only -->
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      <i data-lucide="target" class="w-6 h-6 text-indigo-600"></i> Target vs Achievement
+    </h2>
+
+    <form method="POST" action="{% url 'asm_daily_target_edit' target.id %}" class="space-y-4">
+      {% csrf_token %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full border border-gray-200 rounded-lg text-sm md:text-base">
+    <thead class="bg-indigo-50">
+        <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700">Metric</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-700">🏆 ZM Target</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-700">🎯 ASM Target</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-700">✅ ASM Achieved</th>
+            <th class="px-4 py-3 text-right font-semibold text-gray-700">% Completed</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in metrics %}
+        <tr class="border-b hover:bg-indigo-50 transition">
+
+            <!-- Metric Name -->
+            <td class="px-4 py-3 text-gray-800 font-medium">{{ m.name }}</td>
+
+            <!-- ZM Target (Read Only) -->
+            <td class="px-4 py-3 text-right text-gray-700 font-semibold">
+                {{ m.zm_target|floatformat:0 }}
+            </td>
+
+            <!-- ASM Target (Editable) -->
+            <td class="px-4 py-3 text-right">
+                <input type="number" step="0.1"
+                    name="{{ m.name|slugify }}_asm_target"
+                    value="{{ m.asm_target }}"
+                    class="w-24 text-right border border-gray-300 rounded px-2 py-1
+                           focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+            </td>
+
+            <!-- ASM Achieved (Editable) -->
+            <td class="px-4 py-3 text-right">
+                <input type="number" step="0.1"
+                    name="{{ m.name|slugify }}_achieve"
+                    value="{{ m.achieve }}"
+                    class="w-24 text-right border border-gray-300 rounded px-2 py-1
+                           focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+            </td>
+
+            <!-- Percent -->
+            <td class="px-4 py-3 text-right font-bold
+                {% if m.percent >= 100 %}text-green-600
+                {% elif m.percent >= 80 %}text-yellow-600
+                {% else %}text-red-600{% endif %}">
+                {{ m.percent }}%
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button type="submit"
+                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-lg transition">
+          <i data-lucide="save"></i> Save Target
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+
+{% endblock %}
