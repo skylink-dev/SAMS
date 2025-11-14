@@ -499,14 +499,21 @@ def zm_change_status(request, task_id, new_status):
     return redirect("zm_task_list")
 
 
+from django.db.models import Q, Sum
+
 def zm_sd_collections_view(request):
     # 🔹 Get ZM object for logged-in user
     zm = ZonalManager.objects.filter(user=request.user).first()
     if not zm:
         return render(request, "errors/403.html", {"message": "You are not a Zonal Manager."})
 
-    # 🔹 Filter by Zone Manager
-    collections = SDCollection.objects.filter(zone_manager=zm)
+    # 🔹 ASMs under this ZM
+    asms = zm.asms.all()
+
+    # 🔹 Filter collections: ZM's own + ASMs under ZM
+    collections = SDCollection.objects.filter(
+        Q(zone_manager=zm) | Q(asm__in=asms)
+    )
 
     # 🔹 Optional Filters
     start_date = request.GET.get("start_date")
@@ -528,10 +535,6 @@ def zm_sd_collections_view(request):
     pending_amount = collections.filter(status="pending").aggregate(total=Sum("amount"))["total"] or 0
     completed_amount = collections.filter(status="completed").aggregate(total=Sum("amount"))["total"] or 0
 
-    # 🔹 ASMs under this ZM
-    asms = zm.asms.all()
-
-
     return render(request, "zonal_manager/sd_collections_list.html", {
         "zm": zm,
         "collections": collections,
@@ -544,6 +547,9 @@ def zm_sd_collections_view(request):
         "pending_amount": pending_amount,
         "completed_amount": completed_amount,
     })
+
+
+
 @login_required
 def sd_collection_add(request):
     if request.method == "POST":
