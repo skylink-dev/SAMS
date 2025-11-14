@@ -2,13 +2,34 @@
 {% block title %}ASM Dashboard | Skyplay{% endblock %}
 
 {% block content %}
-<div class="text-center mb-6 animate-fade">
-  <h2 class="text-3xl font-extrabold text-blue-700">{{ asm_profile.full_name }}</h2>
-  <p class="text-gray-500 mt-1">Your Performance Overview</p>
+
+<!-- Mobile Header -->
+<div class="md:hidden flex justify-between items-center bg-blue-700 text-white p-4">
+  <h2 class="font-bold text-lg">ASM Dashboard</h2>
+  <button id="mobileMenuBtn">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+</div>
+
+<!-- Mobile Menu -->
+<div id="mobileMenu" class="hidden md:hidden bg-blue-600 text-white p-4 space-y-2">
+  <a href="#" class="block hover:bg-blue-500 rounded p-2">Dashboard</a>
+  <a href="#" class="block hover:bg-blue-500 rounded p-2">Applications</a>
+  <a href="#" class="block hover:bg-blue-500 rounded p-2">POP</a>
+  <a href="#" class="block hover:bg-blue-500 rounded p-2">Revenue</a>
+</div>
+
+<!-- Desktop Header -->
+<div class="hidden md:flex justify-between items-center bg-blue-700 text-white p-4 rounded-xl mb-6">
+  <h2 class="font-bold text-xl">{{ asm_profile.full_name }}</h2>
+  <p class="opacity-80">Your Performance Overview</p>
 </div>
 
 <!-- KPIs -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
   
   <!-- Performance -->
   <div class="rounded-xl p-4 shadow bg-gradient-to-r from-blue-600 to-blue-800 text-white animate-slide-up">
@@ -59,6 +80,7 @@ const months = {{ chart_months|safe }};
 const perf = {{ chart_performance|safe }};
 const revenue = {{ chart_revenue|safe }};
 
+// Performance Chart
 new Chart(document.getElementById("performanceChart"), {
   type: "line",
   data: {
@@ -75,6 +97,7 @@ new Chart(document.getElementById("performanceChart"), {
   options: { responsive:true, plugins:{ legend:{ display:false }} }
 });
 
+// Revenue Chart
 new Chart(document.getElementById("revenueChart"), {
   type: "bar",
   data: {
@@ -87,6 +110,14 @@ new Chart(document.getElementById("revenueChart"), {
     }]
   },
   options: { responsive:true, plugins:{ legend:{ display:false }} }
+});
+
+// Mobile menu toggle
+const menuBtn = document.getElementById("mobileMenuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+
+menuBtn.addEventListener("click", () => {
+  mobileMenu.classList.toggle("hidden");
 });
 </script>
 
