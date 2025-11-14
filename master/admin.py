@@ -1,7 +1,15 @@
 from django.contrib import admin, messages
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import path
 from .models import PincodeData, State, District, Office, TaskCategory
+import csv
+from django import forms
+# 1️⃣ CSV Upload Form
+class PincodeDataImportForm(forms.Form):
+    csv_file = forms.FileField(
+        label="Select CSV file",
+        help_text="CSV should have columns: officename, pincode, statename, district, officetype"
+    )
 
 
 @admin.register(PincodeData)
@@ -12,13 +20,54 @@ class PincodeDataAdmin(admin.ModelAdmin):
     change_list_template = "admin/pincodedata_changelist.html"  # custom template
 
     def get_urls(self):
-        """Add custom admin URLs for mapping actions"""
         urls = super().get_urls()
         custom_urls = [
+            path("import-csv/", self.admin_site.admin_view(self.import_csv_view), name="pincodedata_import_csv"),
             path("map-to-master/", self.admin_site.admin_view(self.map_to_master_view), name="map_to_master"),
             path("map-city-state-office/", self.admin_site.admin_view(self.map_city_state_office_view), name="map_city_state_office"),
         ]
         return custom_urls + urls
+
+    
+
+       # 3️⃣ CSV Import View
+    def import_csv_view(self, request):
+        if request.method == "POST":
+            form = PincodeDataImportForm(request.POST, request.FILES)
+            if form.is_valid():
+                csv_file = request.FILES['csv_file']
+                decoded_file = csv_file.read().decode('utf-8').splitlines()
+                reader = csv.DictReader(decoded_file)
+
+                created = updated = 0
+                for row in reader:
+                    if not row.get('officename') or not row.get('pincode') or not row.get('statename'):
+                        continue
+
+                    obj, obj_created = PincodeData.objects.update_or_create(
+                        officename=row['officename'].strip(),
+                        pincode=row['pincode'].strip(),
+                        statename=row['statename'].strip(),
+                        district=row.get('district', '').strip(),
+                        defaults={
+                            'officetype': row.get('officetype', '').strip()
+                        }
+                    )
+                    if obj_created:
+                        created += 1
+                    else:
+                        updated += 1
+
+                messages.success(request, f"CSV Import Completed — Created: {created}, Updated: {updated}")
+                return redirect("..")
+        else:
+            form = PincodeDataImportForm()
+
+        context = dict(
+            self.admin_site.each_context(request),
+            form=form
+        )
+        return render(request, "admin/pincodedata_import.html", context)
 
     # ✅ 1️⃣ Map-to-Master Button Logic (safe + descriptive)
     def map_to_master_view(self, request):

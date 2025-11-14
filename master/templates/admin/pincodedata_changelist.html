@@ -3,9 +3,9 @@
 
 {% block object-tools %}
 <div style="display: flex; gap: 10px; align-items: center;">
-  <a href="{% url 'admin:map_to_master' %}" 
-     class="button" 
-     style="background:#007bff;color:white;">🗺️ Map to Master</a>
+  <a href="{% url 'admin:map_to_master' %}" class="button" style="background:#007bff;color:white;">🗺️ Map to Master</a>
+  <a href="{% url 'admin:pincodedata_import_csv' %}" class="button" style="background:#28a745;color:white;">📁 Import CSV</a>
+  <a href="{% url 'admin:map_city_state_office' %}" class="button" style="background:#17a2b8;color:white;">🏙️ Map City–State–Office</a>
 </div>
 {{ block.super }}
 {% endblock %}
